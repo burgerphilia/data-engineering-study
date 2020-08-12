@@ -1,1 +1,2 @@
-# data-engineering-study
+# 소개
+한국의 개발자 채용 플랫폼 [programmers](https://programmers.co.kr)에서 6주간 진행되는 [\[스터디\] 실리콘밸리에서 날아온 데이터 엔지니어링 스타터 키트 with Python](https://programmers.co.kr/learn/courses/10505?utm_source=mailchimp&utm_medium=news_course10505&utm_campaign=course_10505)의 과제 제출 및 공부를 위한 저장소입니다.
