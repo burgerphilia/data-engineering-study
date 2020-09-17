@@ -25,7 +25,8 @@ def get_Redshift_connection():
         password=redshift_pass,
         host=host,
         port=port
-    ))
+        )
+    )
     conn.set_session(autocommit=True)
     return conn.cursor()
 
@@ -36,25 +37,16 @@ def extract(**kwargs):
 def transform(**kwargs):
     text = kwargs["ti"].xcom_pull(key="return_value", task_ids="perform_extract")
     lines = text.split("\n")
-    return lines
+    return tuple("('" + x.split(",")[0] + "','" + x.split(",")[1] + "')" for x in lines[1:] if x != "") # index 1부터 시작하게 하여 header 무시, 빈 문자열 제거
 
 def load(**kwargs):
     cur = get_Redshift_connection()
-    cur.execute("""BEGIN; 
-                   TRUNCATE TABLE ysjune1051.name_gender; 
-                   END;""")
     lines = kwargs["ti"].xcom_pull(key="return_value", task_ids="perform_transform")
-    lines = iter(lines)
-    next(lines) # header 건너뛰기
-    for line in lines:
-        if line != "":
-            (name, gender) = line.split(",")
-            print(name, "-", gender)
-            sql = """BEGIN; 
-                     INSERT INTO ysjune1051.name_gender VALUES ('{name}', '{gender}'); 
-                     END;""".format(name=name, gender=gender)
-            print(sql)
-            cur.execute(sql)
+    sql = """BEGIN; 
+             TRUNCATE TABLE ysjune1051.name_gender; 
+             INSERT INTO ysjune1051.name_gender VALUES {lines}; 
+             END;""".format(lines=",".join(lines))
+    cur.execute(sql)
 
 task_extract = PythonOperator(
 	task_id = "perform_extract",
